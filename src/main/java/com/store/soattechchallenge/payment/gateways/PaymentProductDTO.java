@@ -1,4 +1,4 @@
-package com.store.soattechchallenge.payment.application.gateways;
+package com.store.soattechchallenge.payment.gateways;
 
 public record PaymentProductDTO(String name, String category, Double unitPrice, Integer quantity) {
     public Double getTotalValue() {

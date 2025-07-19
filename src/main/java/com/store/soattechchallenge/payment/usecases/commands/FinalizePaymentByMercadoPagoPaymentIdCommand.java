@@ -1,4 +1,4 @@
-package com.store.soattechchallenge.payment.application.usecases.commands;
+package com.store.soattechchallenge.payment.usecases.commands;
 
 public record FinalizePaymentByMercadoPagoPaymentIdCommand(String paymentId) {
 }

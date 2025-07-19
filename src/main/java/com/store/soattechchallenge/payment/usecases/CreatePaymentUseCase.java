@@ -1,11 +1,11 @@
-package com.store.soattechchallenge.payment.application.usecases;
+package com.store.soattechchallenge.payment.usecases;
 
-import com.store.soattechchallenge.payment.application.gateways.PaymentGateway;
+import com.store.soattechchallenge.payment.gateways.PaymentGateway;
 import com.store.soattechchallenge.payment.domain.entities.Payment;
 import com.store.soattechchallenge.payment.domain.PaymentStatus;
-import com.store.soattechchallenge.payment.application.gateways.PaymentRepositoryGateway;
-import com.store.soattechchallenge.payment.application.usecases.commands.CreatePaymentCommand;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.PaymentCreationException;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.usecases.commands.CreatePaymentCommand;
+import com.store.soattechchallenge.payment.gateways.exceptions.PaymentCreationException;
 import com.store.soattechchallenge.utils.exception.CustomException;
 import org.springframework.http.HttpStatus;
 

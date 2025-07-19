@@ -1,9 +1,9 @@
-package com.store.soattechchallenge.payment.application.usecases;
+package com.store.soattechchallenge.payment.usecases;
 
-import com.store.soattechchallenge.payment.application.gateways.PaymentRepositoryGateway;
-import com.store.soattechchallenge.payment.application.usecases.commands.FindPaymentByIdCommand;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.usecases.commands.FindPaymentByIdCommand;
 import com.store.soattechchallenge.payment.domain.entities.Payment;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.EntityNotFoundException;
+import com.store.soattechchallenge.payment.gateways.exceptions.EntityNotFoundException;
 import com.store.soattechchallenge.utils.exception.CustomException;
 import org.springframework.http.HttpStatus;
 

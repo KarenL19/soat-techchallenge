@@ -1,48 +1,88 @@
 package com.store.soattechchallenge.payment.controller;
 
-import com.store.soattechchallenge.payment.application.usecases.CreatePaymentUseCase;
-import com.store.soattechchallenge.payment.application.usecases.FinalizePaymentByMercadoPagoPaymentIdUseCase;
-import com.store.soattechchallenge.payment.application.usecases.FindPaymentByIdUseCase;
-import com.store.soattechchallenge.payment.application.usecases.RenderQrCodeUseCase;
-import com.store.soattechchallenge.payment.application.usecases.commands.CreatePaymentCommand;
-import com.store.soattechchallenge.payment.application.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
-import com.store.soattechchallenge.payment.application.usecases.commands.FindPaymentByIdCommand;
-import com.store.soattechchallenge.payment.application.usecases.commands.RenderQrCodeCommand;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.store.soattechchallenge.payment.gateways.PaymentGateway;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.usecases.CreatePaymentUseCase;
+import com.store.soattechchallenge.payment.usecases.FinalizePaymentByMercadoPagoPaymentIdUseCase;
+import com.store.soattechchallenge.payment.usecases.FindPaymentByIdUseCase;
+import com.store.soattechchallenge.payment.usecases.RenderQrCodeUseCase;
+import com.store.soattechchallenge.payment.usecases.commands.CreatePaymentCommand;
+import com.store.soattechchallenge.payment.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
+import com.store.soattechchallenge.payment.usecases.commands.FindPaymentByIdCommand;
+import com.store.soattechchallenge.payment.usecases.commands.RenderQrCodeCommand;
 import com.store.soattechchallenge.payment.domain.entities.Payment;
+import com.store.soattechchallenge.payment.infrastructure.api.dto.PaymentResponseDTO;
+import com.store.soattechchallenge.payment.infrastructure.configuration.MercadoPagoIntegrationConfig;
+import com.store.soattechchallenge.payment.infrastructure.gateways.MercadoPagoPaymentGateway;
+import com.store.soattechchallenge.payment.infrastructure.gateways.PaymentRepositoryJpaGateway;
+import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.MercadoPagoClient;
+import com.store.soattechchallenge.payment.infrastructure.jpa.PaymentJpaRepository;
+import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentMapper;
+import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentStatusMapper;
+import com.store.soattechchallenge.payment.presenters.PaymentHttpPresenter;
+import com.store.soattechchallenge.payment.presenters.QrCodePresenter;
 
 import java.awt.image.BufferedImage;
 
 public class PaymentController {
-    private final FindPaymentByIdUseCase findPaymentByIdUseCase;
-    private final RenderQrCodeUseCase renderQrCodeUseCase;
-    private final CreatePaymentUseCase createPaymentUseCase;
-    private final FinalizePaymentByMercadoPagoPaymentIdUseCase finalizePaymentByMercadoPagoPaymentIdUseCase;
+    private final PaymentMapper paymentMapper;
+    private final QRCodeWriter qrCodeWriter;
+    private final PaymentRepositoryGateway paymentRepositoryGateway;
+    private final MercadoPagoClient mercadoPagoClient;
+    private final PaymentGateway paymentGateway;
+    private final PaymentStatusMapper paymentStatusMapper;
 
     public PaymentController(
-            FindPaymentByIdUseCase findPaymentByIdUseCase,
-            RenderQrCodeUseCase renderQrCodeUseCase,
-            CreatePaymentUseCase createPaymentUseCase,
-            FinalizePaymentByMercadoPagoPaymentIdUseCase finalizePaymentByMercadoPagoPaymentIdUseCase
+            PaymentJpaRepository paymentJpaRepository,
+            PaymentMapper paymentMapper,
+            QRCodeWriter qrCodeWriter,
+            MercadoPagoIntegrationConfig mercadoPagoIntegrationConfig,
+            MercadoPagoClient mercadoPagoClient,
+            PaymentStatusMapper paymentStatusMapper
     ) {
-        this.findPaymentByIdUseCase = findPaymentByIdUseCase;
-        this.renderQrCodeUseCase = renderQrCodeUseCase;
-        this.createPaymentUseCase = createPaymentUseCase;
-        this.finalizePaymentByMercadoPagoPaymentIdUseCase = finalizePaymentByMercadoPagoPaymentIdUseCase;
+        this.paymentMapper = paymentMapper;
+        this.qrCodeWriter = qrCodeWriter;
+        this.mercadoPagoClient = mercadoPagoClient;
+        this.paymentStatusMapper = paymentStatusMapper;
+        this.paymentGateway = new MercadoPagoPaymentGateway(
+                mercadoPagoIntegrationConfig,
+                this.mercadoPagoClient
+        );
+
+        this.paymentRepositoryGateway = new PaymentRepositoryJpaGateway(
+                paymentJpaRepository, this.paymentMapper
+        );
     }
 
-    public Payment findById(FindPaymentByIdCommand command) {
-        return this.findPaymentByIdUseCase.execute(command);
+    public PaymentResponseDTO findById(FindPaymentByIdCommand command) {
+        FindPaymentByIdUseCase useCase = new FindPaymentByIdUseCase(this.paymentRepositoryGateway);
+        PaymentHttpPresenter presenter = new PaymentHttpPresenter(this.paymentMapper);
+        Payment payment = useCase.execute(command);
+        return presenter.present(payment);
     }
 
     public BufferedImage renderQrCode(RenderQrCodeCommand command) {
-        return this.renderQrCodeUseCase.execute(command);
+        RenderQrCodeUseCase useCase = new RenderQrCodeUseCase(this.paymentRepositoryGateway, qrCodeWriter);
+        QrCodePresenter presenter = new QrCodePresenter();
+        BufferedImage qrCode = useCase.execute(command);
+        return presenter.present(qrCode);
     }
 
-    public Payment create(CreatePaymentCommand command) {
-        return this.createPaymentUseCase.execute(command);
+    public PaymentResponseDTO create(CreatePaymentCommand command) {
+        CreatePaymentUseCase useCase = new CreatePaymentUseCase(this.paymentRepositoryGateway, this.paymentGateway);
+        PaymentHttpPresenter presenter = new PaymentHttpPresenter(this.paymentMapper);
+        Payment payment = useCase.execute(command);
+        return presenter.present(payment);
     }
 
-    public Payment finalizePaymentByMercadoPago(FinalizePaymentByMercadoPagoPaymentIdCommand command) {
-        return this.finalizePaymentByMercadoPagoPaymentIdUseCase.execute(command);
+    public PaymentResponseDTO finalizePaymentByMercadoPago(FinalizePaymentByMercadoPagoPaymentIdCommand command) {
+        FinalizePaymentByMercadoPagoPaymentIdUseCase useCase = new FinalizePaymentByMercadoPagoPaymentIdUseCase(
+                this.paymentRepositoryGateway, this.mercadoPagoClient, this.paymentStatusMapper
+        );
+
+        PaymentHttpPresenter presenter = new PaymentHttpPresenter(this.paymentMapper);
+        Payment payment = useCase.execute(command);
+        return presenter.present(payment);
     }
 }

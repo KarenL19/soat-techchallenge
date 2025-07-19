@@ -1,17 +1,21 @@
 package com.store.soattechchallenge.payment.infrastructure.api.controller;
 
-import com.store.soattechchallenge.payment.application.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
-import com.store.soattechchallenge.payment.domain.entities.Payment;
-import com.store.soattechchallenge.payment.application.usecases.commands.CreatePaymentCommand;
-import com.store.soattechchallenge.payment.application.usecases.commands.FindPaymentByIdCommand;
-import com.store.soattechchallenge.payment.application.usecases.commands.RenderQrCodeCommand;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.store.soattechchallenge.payment.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
+import com.store.soattechchallenge.payment.usecases.commands.CreatePaymentCommand;
+import com.store.soattechchallenge.payment.usecases.commands.FindPaymentByIdCommand;
+import com.store.soattechchallenge.payment.usecases.commands.RenderQrCodeCommand;
 import com.store.soattechchallenge.payment.controller.PaymentController;
 import com.store.soattechchallenge.payment.infrastructure.api.dto.PaymentResponseDTO;
 import com.store.soattechchallenge.payment.infrastructure.api.dto.MercadoPagoWebhookDTO;
 import com.store.soattechchallenge.payment.infrastructure.api.dto.PaymentCreateRequestDTO;
 import com.store.soattechchallenge.payment.infrastructure.api.validator.MercadoPagoWebhookValidator;
+import com.store.soattechchallenge.payment.infrastructure.configuration.MercadoPagoIntegrationConfig;
+import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.MercadoPagoClient;
+import com.store.soattechchallenge.payment.infrastructure.jpa.PaymentJpaRepository;
 import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentMapper;
 import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentProductMapper;
+import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentStatusMapper;
 import com.store.soattechchallenge.utils.exception.CustomException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,35 +36,44 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/payment")
 public class PaymentAPIController {
-    private final PaymentController paymentController;
-    private final PaymentMapper paymentMapper;
-    private final MercadoPagoWebhookValidator mercadoPagoWebhookValidator;
+    private final PaymentController controller;
     private final PaymentProductMapper paymentProductMapper;
+    private final MercadoPagoWebhookValidator mercadoPagoWebhookValidator;
 
     public PaymentAPIController(
-            PaymentController paymentController,
+            PaymentJpaRepository paymentJpaRepository,
             PaymentMapper paymentMapper,
-            MercadoPagoWebhookValidator mercadoPagoWebhookValidator,
-            PaymentProductMapper paymentProductMapper
+            QRCodeWriter qrCodeWriter,
+            MercadoPagoIntegrationConfig mercadoPagoIntegrationConfig,
+            MercadoPagoClient mercadoPagoClient,
+            PaymentProductMapper paymentProductMapper,
+            PaymentStatusMapper paymentStatusMapper,
+            MercadoPagoWebhookValidator mercadoPagoWebhookValidator
     ) {
-        this.paymentController = paymentController;
-        this.paymentMapper = paymentMapper;
-        this.mercadoPagoWebhookValidator = mercadoPagoWebhookValidator;
         this.paymentProductMapper = paymentProductMapper;
+        this.mercadoPagoWebhookValidator = mercadoPagoWebhookValidator;
+        this.controller = new PaymentController(
+                paymentJpaRepository,
+                paymentMapper,
+                qrCodeWriter,
+                mercadoPagoIntegrationConfig,
+                mercadoPagoClient,
+                paymentStatusMapper
+        );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponseDTO> find(@PathVariable String id) {
         FindPaymentByIdCommand command = new FindPaymentByIdCommand(id);
-        Payment payment = this.paymentController.findById(command);
-        return ResponseEntity.ok(this.paymentMapper.fromDomainToDTO(payment));
+        PaymentResponseDTO dto = this.controller.findById(command);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}/qr")
     public void getQrCode(@PathVariable String id, HttpServletResponse response) {
         try {
             RenderQrCodeCommand command = new RenderQrCodeCommand(id, 600, 600);
-            BufferedImage qrImage = this.paymentController.renderQrCode(command);
+            BufferedImage qrImage = this.controller.renderQrCode(command);
             response.setContentType(MediaType.IMAGE_PNG_VALUE);
             ImageIO.write(qrImage, "PNG", response.getOutputStream());
         } catch (IOException error) {
@@ -86,8 +99,8 @@ public class PaymentAPIController {
                         .collect(Collectors.toList())
         );
 
-        Payment payment = this.paymentController.create(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.paymentMapper.fromDomainToDTO(payment));
+        PaymentResponseDTO dto = this.controller.create(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @PostMapping("/notifications/mercado-pago")
@@ -110,10 +123,10 @@ public class PaymentAPIController {
                 mercadoPagoWebhookDTO.data().id()
         );
 
-        Payment payment = this.paymentController.finalizePaymentByMercadoPago(
+        PaymentResponseDTO dto = this.controller.finalizePaymentByMercadoPago(
                 command
         );
 
-        return ResponseEntity.ok(this.paymentMapper.fromDomainToDTO(payment));
+        return ResponseEntity.ok(dto);
     }
 }

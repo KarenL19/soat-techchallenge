@@ -1,4 +1,4 @@
-package com.store.soattechchallenge.payment.application.gateways.exceptions;
+package com.store.soattechchallenge.payment.gateways.exceptions;
 
   public class PaymentCreationException extends RuntimeException {
   public PaymentCreationException(String message) {

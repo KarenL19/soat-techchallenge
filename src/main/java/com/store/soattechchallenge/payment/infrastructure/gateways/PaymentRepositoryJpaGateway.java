@@ -1,8 +1,8 @@
 package com.store.soattechchallenge.payment.infrastructure.gateways;
 
 import com.store.soattechchallenge.payment.domain.entities.Payment;
-import com.store.soattechchallenge.payment.application.gateways.PaymentRepositoryGateway;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.EntityNotFoundException;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.gateways.exceptions.EntityNotFoundException;
 import com.store.soattechchallenge.payment.infrastructure.mappers.PaymentMapper;
 import com.store.soattechchallenge.payment.infrastructure.jpa.JpaPayment;
 import com.store.soattechchallenge.payment.infrastructure.jpa.PaymentJpaRepository;

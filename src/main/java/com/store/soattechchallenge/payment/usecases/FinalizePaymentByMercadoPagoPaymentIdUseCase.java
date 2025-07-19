@@ -1,9 +1,9 @@
-package com.store.soattechchallenge.payment.application.usecases;
+package com.store.soattechchallenge.payment.usecases;
 
 import com.store.soattechchallenge.payment.domain.entities.Payment;
-import com.store.soattechchallenge.payment.application.gateways.PaymentRepositoryGateway;
-import com.store.soattechchallenge.payment.application.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.EntityNotFoundException;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.usecases.commands.FinalizePaymentByMercadoPagoPaymentIdCommand;
+import com.store.soattechchallenge.payment.gateways.exceptions.EntityNotFoundException;
 import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.MercadoPagoClient;
 import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.exception.MPClientException;
 import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.model.MPOrder;

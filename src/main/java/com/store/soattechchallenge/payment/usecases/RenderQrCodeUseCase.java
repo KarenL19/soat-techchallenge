@@ -1,4 +1,4 @@
-package com.store.soattechchallenge.payment.application.usecases;
+package com.store.soattechchallenge.payment.usecases;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -7,9 +7,9 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.springframework.http.HttpStatus;
 import com.store.soattechchallenge.payment.domain.entities.Payment;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.EntityNotFoundException;
-import com.store.soattechchallenge.payment.application.gateways.PaymentRepositoryGateway;
-import com.store.soattechchallenge.payment.application.usecases.commands.RenderQrCodeCommand;
+import com.store.soattechchallenge.payment.gateways.exceptions.EntityNotFoundException;
+import com.store.soattechchallenge.payment.gateways.PaymentRepositoryGateway;
+import com.store.soattechchallenge.payment.usecases.commands.RenderQrCodeCommand;
 import com.store.soattechchallenge.utils.exception.CustomException;
 
 import java.awt.image.BufferedImage;

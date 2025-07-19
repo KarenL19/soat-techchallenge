@@ -1,9 +1,9 @@
 package com.store.soattechchallenge.payment.infrastructure.gateways;
 
-import com.store.soattechchallenge.payment.application.gateways.PaymentGateway;
-import com.store.soattechchallenge.payment.application.gateways.PaymentProductDTO;
+import com.store.soattechchallenge.payment.gateways.PaymentGateway;
+import com.store.soattechchallenge.payment.gateways.PaymentProductDTO;
 import com.store.soattechchallenge.payment.infrastructure.configuration.MercadoPagoIntegrationConfig;
-import com.store.soattechchallenge.payment.application.gateways.exceptions.PaymentCreationException;
+import com.store.soattechchallenge.payment.gateways.exceptions.PaymentCreationException;
 import com.store.soattechchallenge.payment.domain.entities.Payment;
 import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.MercadoPagoClient;
 import com.store.soattechchallenge.payment.infrastructure.integrations.mercado_pago.exception.MPClientException;

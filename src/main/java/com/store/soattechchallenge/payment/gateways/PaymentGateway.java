@@ -1,4 +1,4 @@
-package com.store.soattechchallenge.payment.application.gateways;
+package com.store.soattechchallenge.payment.gateways;
 
 import com.store.soattechchallenge.payment.domain.entities.Payment;
 
